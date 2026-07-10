@@ -112,3 +112,85 @@ gini_impurity = calculate_gini(node_samples)
 print(f"Gini Impurity: {gini_impurity}")  # Output: 0.48
 ```
 
+`For Regression`
+## Regression Trees: How Splits Work
+
+A quick, intuitive summary of how regression trees decide where to split — no heavy math required.
+
+---
+
+## 1. The Big Idea
+
+A regression tree keeps splitting the data into smaller groups so that, inside each group, the target values $y$ are as **similar to each other** as possible.
+
+- "Similar" = low variance = low spread.
+- Each leaf predicts the **average** of the $y$ values that land in it.
+
+---
+
+## 2. What Makes a "Good" Split?
+
+A good split takes one messy group and turns it into two cleaner groups.
+
+**Example:**
+
+| x | 1 | 2 | 3 | 4 | 5 | 6 |
+|---|---|---|---|---|---|---|
+| y | 2 | 3 | 3 | 8 | 9 | 10 |
+
+If we split at $x \le 3$:
+
+- Left group: `{2, 3, 3}` → all small numbers, tightly packed ✅
+- Right group: `{8, 9, 10}` → all large numbers, tightly packed ✅
+
+This is a great split because each side is now much more uniform than the original mixed group.
+
+If we split at $x \le 2$ instead:
+
+- Left: `{2, 3}`
+- Right: `{3, 8, 9, 10}` → still messy, values are spread far apart ❌
+
+Worse split, because the right side still mixes small and large values.
+
+---
+
+## 3. The Actual Rule (Simplified)
+
+For each possible split, the tree measures **how spread out** the y-values are on each side using **squared error** (basically: how far each value is from its group's average, squared, then summed).
+
+$$
+\text{Spread}(\text{group}) = \sum (\,y_i - \text{average of group}\,)^2
+$$
+
+The tree tries every feature and every possible threshold, and picks whichever split gives the **smallest total spread** across both children combined.
+
+> **In one sentence:** the tree picks the split that makes both resulting groups as tightly clustered around their own average as possible.
+
+---
+
+## 4. Why the Average?
+
+Because the average is the single number that minimizes total squared distance to all points in a group. Predicting anything else (a random guess, the max, etc.) would only increase the error. That's why every leaf in a regression tree predicts the mean of its samples.
+
+---
+
+## 5. Quick Comparison of Criteria
+
+| Criterion | What it does | Leaf predicts |
+|---|---|---|
+| **MSE / SSE** (default) | Minimizes squared differences | Mean |
+| **MAE** | Minimizes absolute differences (more robust to outliers) | Median |
+| **Friedman MSE** | Same idea as MSE, tuned for boosting models | Mean |
+
+---
+
+## Steps
+
+1. Try splitting on every feature and threshold.
+2. For each split, measure how spread out $y$ is in the left and right groups.
+3. Pick the split that minimizes total spread.
+4. Repeat inside each new group until you hit a stopping rule (max depth, min samples, etc.).
+5. Each final leaf predicts the average $y$ of the samples inside it.
+
+That's the entire idea — everything else (Friedman's formula, incremental computation tricks, MAE vs MSE) is just refinement on top of this core rule.
+
